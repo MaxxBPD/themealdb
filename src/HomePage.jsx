@@ -22,13 +22,12 @@ function HomePage() {
   const apiKey = '1';
 
   useEffect(() => {
-    // Restore state from history if available
-    if (location.state) {
-      setSearchTerm(location.state.searchTerm || '');
-      setIngredient(location.state.ingredient || '');
-      setResults(location.state.results || []);
-      setCurrentPage(location.state.currentPage || 1);
-      setFavorites(location.state.favorites || {});
+    const savedState = JSON.parse(sessionStorage.getItem('searchState'));
+    if (savedState) {
+      setSearchTerm(savedState.searchTerm || '');
+      setIngredient(savedState.ingredient || '');
+      setResults(savedState.results || []);
+      setCurrentPage(savedState.currentPage || 1);
     }
   }, [location.state]);
 
@@ -162,6 +161,17 @@ function HomePage() {
     navigate('/');
   };
 
+  const handleViewRecipe = (idMeal) => {
+    const stateToSave = {
+      searchTerm,
+      ingredient,
+      results,
+      currentPage,
+    };
+    sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+    navigate(`/meal/${idMeal}`);
+  };
+
   return (
     <>
       {isLoggedIn ? (
@@ -182,7 +192,7 @@ function HomePage() {
                     <button className="favorite-button" onClick={() => handleFavoriteToggle(idMeal, strMeal)}>
                       {favorites[idMeal] ? 'Unmark Favorite' : 'Mark Favorite'}
                     </button>
-                    <button className="view-recipe-button" onClick={() => navigate(`/meal/${idMeal}`)}>
+                    <button className="view-recipe-button" onClick={() => handleViewRecipe(idMeal)}>
                       View Recipe
                     </button>
                   </li>
@@ -218,14 +228,7 @@ function HomePage() {
                       <button className="favorite-button" onClick={() => handleFavoriteToggle(meal.idMeal, meal.strMeal)}>
                         {favorites[meal.idMeal] ? 'Unmark Favorite' : 'Mark Favorite'}
                       </button>
-                      <button className="view-recipe-button" onClick={() => navigate(`/meal/${meal.idMeal}`, {
-                        state: {
-                          searchTerm,
-                          ingredient,
-                          results,
-                          currentPage
-                        }
-                      })}>
+                      <button className="view-recipe-button" onClick={() => handleViewRecipe(meal.idMeal)}>
                         View Recipe
                       </button>
                     </li>
