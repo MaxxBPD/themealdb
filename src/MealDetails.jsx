@@ -4,7 +4,6 @@ import { useParams, useLocation } from 'react-router-dom';
 function MealDetails() {
   const { idMeal } = useParams();
   const location = useLocation();
-  const { searchTerm, ingredient, results, currentPage } = location.state || {};
   const [selectedMeal, setSelectedMeal] = useState(null);
 
   useEffect(() => {

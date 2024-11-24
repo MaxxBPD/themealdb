@@ -5,7 +5,6 @@ import './Login.css';
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formType, setFormType] = useState('');
@@ -126,7 +125,6 @@ function Login() {
     {formType === 'login' && (
         <div className="login-container">
             <form className="login-form">
-                {loginError && <p className="error-message">{errorMessage}</p>}
                 <div className="form-group">
                     <input
                         type="text"
@@ -152,7 +150,6 @@ function Login() {
     {formType === 'create' && (
         <div className="login-container">
             <form className="login-form">
-                {loginError && <p className="error-message">{errorMessage}</p>}
                 <div className="form-group">
                     <input
                         type="text"

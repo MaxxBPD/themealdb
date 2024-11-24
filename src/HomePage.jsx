@@ -8,7 +8,6 @@ function HomePage() {
   const [ingredient, setIngredient] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [favorites, setFavorites] = useState(() => JSON.parse(localStorage.getItem('favorites')) || {});
-  const [selectedMeal, setSelectedMeal] = useState(null);
   const [firstRun, setFirstRun] = useState(true); // Use state for firstRun
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
@@ -157,6 +156,7 @@ function HomePage() {
     localStorage.removeItem('user_id');
     localStorage.removeItem('username');
     localStorage.removeItem('favorites');
+    sessionStorage.removeItem('searchState');
     setIsLoggedIn(false);
     navigate('/');
   };
