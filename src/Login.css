@@ -1,0 +1,27 @@
+.button-group {
+    margin: 10px;
+}
+
+.login-button {
+    margin: 5px;
+}
+
+.create-account-button {
+    margin: 5px;
+}
+
+.guest-button {
+    margin: 5px;
+}
+
+.login-form {
+    margin: 10px;
+}
+
+.form-group {
+    margin: 5px;
+}   
+
+.form-group input {
+    width: 100%;
+}
