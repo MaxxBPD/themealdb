@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
@@ -9,7 +9,15 @@ function Login() {
   const [errorMessage, setErrorMessage] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formType, setFormType] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const user_id = localStorage.getItem('user_id');
+    if (user_id) {
+        setIsLoggedIn(true);
+    }
+  }, []);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -29,12 +37,30 @@ function Login() {
     })
     .then(data => {
         console.log(data);
+        localStorage.setItem('user_id', data.user_id);
+        localStorage.setItem('username', data.username);
+        if (getFavorites()) {
+            localStorage.setItem('favorites', JSON.stringify(getFavorites()));
+        }
         navigate('/home');
     })
     .catch(error => {
         console.error('Error:', error);
         setErrorMessage(error.message);
     });
+  };
+
+  const getFavorites = () => {
+    const userId = localStorage.getItem('user_id');
+    fetch(`http://localhost:3000/get-favorites?user_id=${userId}`, {  
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        return data;
+    })
+    .catch(error => console.error('Error fetching favorites:', error));
   };
 
   const handleCreateAccount = (e) => {
@@ -58,6 +84,8 @@ function Login() {
         }
     })
     .then(data => {
+        localStorage.setItem('user_id', data.user_id);
+        localStorage.setItem('username', data.username);
         navigate('/home');
     })
     .catch(error => {
@@ -67,19 +95,33 @@ function Login() {
   };
 
   const continueAsGuest = () => {
+    localStorage.setItem('user_id', 'guest');
+    localStorage.setItem('username', 'Guest');
+    localStorage.setItem('favorites', '{}');
     navigate('/home');
   };
 
   return (
     <>
-    <h2>Welcome to the MealDB Recipe Finder!</h2>
-    <div className="login-container">
-        <button className="login-button" onClick={() => {setFormType('login'); setErrorMessage(''); setUsername(''); setPassword('');}}>Login</button>
-        <button className="create-account-button" onClick={() => {setFormType('create'); setErrorMessage(''); setUsername(''); setPassword(''); setConfirmPassword('');}}>Create Account</button>
-        <button className="guest-button" onClick={continueAsGuest}>
-            Continue as Guest
-        </button>
-    </div>
+    {isLoggedIn ? (
+        <>
+            <h2>You are already logged in</h2>
+            <div className="login-container">
+                <button className="continue-button" onClick={() => navigate('/home')}>Continue to Recipe Finder</button>
+                <button className="login-button" onClick={() => {setFormType('login'); setErrorMessage(''); setUsername(''); setPassword('');}}>Log in as New User</button>
+                <button className="guest-button" onClick={continueAsGuest}>Continue as Guest</button>
+            </div>
+        </>
+    ) : (
+        <>
+            <h2>Welcome to the MealDB Recipe Finder!</h2>
+            <div className="login-container">
+                <button className="login-button" onClick={() => {setFormType('login'); setErrorMessage(''); setUsername(''); setPassword('');}}>Login</button>
+                <button className="create-account-button" onClick={() => {setFormType('create'); setErrorMessage(''); setUsername(''); setPassword(''); setConfirmPassword('');}}>Create Account</button>
+                <button className="guest-button" onClick={continueAsGuest}>Continue as Guest</button>
+            </div>
+        </>
+    )}
     {errorMessage && <p className="error-message">{errorMessage}</p>}
     {formType === 'login' && (
         <div className="login-container">
@@ -109,38 +151,36 @@ function Login() {
     )}
     {formType === 'create' && (
         <div className="login-container">
-            <div className="login-container">
-                <form className="login-form">
-                    {loginError && <p className="error-message">{errorMessage}</p>}
-                    <div className="form-group">
-                        <input
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="password"
-                            placeholder="Confirm Password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                        />
-                    </div>
-                    <div className="button-group">
-                        <button onClick={handleCreateAccount} className="create" disabled={!username || !password || !confirmPassword}>Create Account</button>
-                    </div>
-                </form>
-            </div>
+            <form className="login-form">
+                {loginError && <p className="error-message">{errorMessage}</p>}
+                <div className="form-group">
+                    <input
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                </div>
+                <div className="form-group">
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </div>
+                <div className="form-group">
+                    <input
+                        type="password"
+                        placeholder="Confirm Password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                </div>
+                <div className="button-group">
+                    <button onClick={handleCreateAccount} className="create" disabled={!username || !password || !confirmPassword}>Create Account</button>
+                </div>
+            </form>
         </div>
     )}
     </>

@@ -46,7 +46,7 @@ app.post('/create-account', (req, res) => {
                     res.status(500).send('Error creating account');
                 }
             } else {
-                res.status(200).json({ message: 'Account created successfully', user_id: user_id });
+                res.status(200).json({ message: 'Account created successfully', user_id: user_id, username: username });
             }
         });
     };
@@ -74,7 +74,7 @@ app.post('/attempt-login', (req, res) => {
                         console.error('Error updating login:', updateErr);
                         res.status(500).json({ message: 'Error updating login' });
                     } else {
-                        res.status(200).json({ message: 'Login successful', user_id: user.user_id });
+                        res.status(200).json({ message: 'Login successful', user_id: user.user_id, username: user.username });
                     }
                 });
             } else {
@@ -84,15 +84,15 @@ app.post('/attempt-login', (req, res) => {
     });
 });
 
-app.post('/get-favorites', (req, res) => {
-    const { user_id } = req.body;
-    const query = 'SELECT * FROM favorites WHERE user_id = ?';
+app.get('/get-favorites', (req, res) => {
+    const { user_id } = req.query;
+    const query = 'SELECT idMeal, strMeal FROM favorites WHERE user_id = ?';
     db.query(query, [user_id], (err, result) => {
         if (err) {
-        console.error('Error inserting data:', err);
-        res.status(500).send('Error retrieving favorites');
+            console.error('Error retrieving data:', err);
+            res.status(500).send('Error retrieving favorites');
         } else {
-            res.status(200).json(result);
+            res.status(200).json(result.length ? result : {});
         }
     });
 });
@@ -108,7 +108,15 @@ app.post('/save-favorite', (req, res) => {
             res.status(200).send('Favorite saved successfully');
         }
     });
+});
+
+app.delete('/delete-favorite', (req, res) => {
+    const { user_id, idMeal } = req.body;
+    const query = 'DELETE FROM favorites WHERE user_id = ? AND idMeal = ?';
+    db.query(query, [user_id, idMeal], (err, result) => {
+        res.status(200).send('Favorite deleted successfully');
     });
+});
 
 app.listen(3000, () => {
     console.log('Server running on port 3000');
