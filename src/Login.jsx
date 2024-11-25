@@ -9,12 +9,16 @@ function Login() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formType, setFormType] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const user_id = localStorage.getItem('user_id');
     if (user_id) {
         setIsLoggedIn(true);
+    }
+    if (user_id === 'guest') {
+      setIsGuest(true);
     }
   }, []);
 
@@ -68,6 +72,14 @@ function Login() {
         setErrorMessage('Passwords do not match');
         return;
     }
+    if (username.length < 6) {
+        setErrorMessage('Username must be at least 6 characters long');
+        return;
+    }
+    if (password.length < 6) {
+        setErrorMessage('Password must be at least 6 characters long');
+        return;
+    }
     fetch('http://localhost:3000/create-account', {
         method: 'POST',
         body: JSON.stringify({ username, password }),
@@ -100,15 +112,30 @@ function Login() {
     navigate('/home');
   };
 
+  const clearLocalStorage = () => {
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('username');
+    localStorage.removeItem('favorites');
+  };
+
+  const clearUserState = () => {
+    setIsLoggedIn(false);
+    setFormType('');
+    setErrorMessage('');
+    setUsername('');
+    setPassword('');
+  };
+
   return (
     <>
     {isLoggedIn ? (
         <>
-            <h2>You are already logged in</h2>
+            <h2>You are already logged in as {localStorage.getItem('username')}</h2>
             <div className="login-container">
                 <button className="continue-button" onClick={() => navigate('/home')}>Continue to Recipe Finder</button>
-                <button className="login-button" onClick={() => {setFormType('login'); setErrorMessage(''); setUsername(''); setPassword('');}}>Log in as New User</button>
-                <button className="guest-button" onClick={continueAsGuest}>Continue as Guest</button>
+                <button className="login-button" onClick={() => {clearLocalStorage(); clearUserState(); setFormType('login');}}>Log in as New User</button>
+                <button className="create-account-button" onClick={() => {clearLocalStorage(); clearUserState(); setFormType('create');}}>Create Account</button>
+                {!isGuest ? <button className="guest-button" onClick={continueAsGuest}>Continue as Guest</button> : null}
             </div>
         </>
     ) : (
@@ -131,6 +158,7 @@ function Login() {
                         placeholder="Username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
+                        maxLength={16}
                     />
                 </div>
                 <div className="form-group">
@@ -139,6 +167,7 @@ function Login() {
                         placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        maxLength={16}
                     />
                 </div>
                 <div className="button-group">
@@ -156,6 +185,7 @@ function Login() {
                         placeholder="Username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
+                        maxLength={16}
                     />
                 </div>
                 <div className="form-group">
@@ -164,6 +194,7 @@ function Login() {
                         placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        maxLength={16}
                     />
                 </div>
                 <div className="form-group">

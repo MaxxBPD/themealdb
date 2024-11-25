@@ -26,7 +26,7 @@ function MealDetails() {
       <p><strong>Instructions:</strong></p>
       <p>{selectedMeal.strInstructions}</p>
       <p><strong>Ingredients:</strong></p>
-      <ul>
+      <ul style={{ listStyleType: 'none', padding: '0' }}>
         {Array.from({ length: 20 }, (_, i) => i + 1)
           .filter(i => selectedMeal[`strIngredient${i}`])
           .map(i => (

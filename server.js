@@ -3,6 +3,7 @@ import mysql from 'mysql';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcrypt';
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
@@ -14,6 +15,19 @@ const db = mysql.createConnection({
     password: '',
     database: 'themealdb'
 });
+
+const saltRounds = 10;
+
+const encryptPassword = (password) => {
+    return bcrypt.hashSync(password, saltRounds);
+};
+
+const decryptPassword = (plainPassword, hashedPassword) => {
+    if (typeof plainPassword !== 'string' || typeof hashedPassword !== 'string') {
+        throw new Error('Both plainPassword and hashedPassword must be strings');
+    }
+    return bcrypt.compareSync(plainPassword, hashedPassword);
+};
 
 db.connect(err => {
     if (err) {
@@ -30,7 +44,7 @@ app.post('/create-account', (req, res) => {
     const insertUser = () => {
         const user_id = uuidv4();
         const query = 'INSERT INTO users (user_id, username, password, created_on, last_login, logins) VALUES (?, ?, ?, ?, ?, ?)';
-        db.query(query, [user_id, username, password, date, date, 0], (err, result) => {
+        db.query(query, [user_id, username, encryptPassword(password), date, date, 1], (err, result) => {
             if (err) {
                 if (err.code === 'ER_DUP_ENTRY') {
                     console.log(err.message);
@@ -66,7 +80,8 @@ app.post('/attempt-login', (req, res) => {
             res.status(404).json({ message: 'Username not found' });
         } else {
             const user = result[0];
-            if (user.password === password) {
+            const hashedPassword = user.password.toString();
+            if (decryptPassword(password, hashedPassword)) {
                 const date = new Date();
                 const updateQuery = 'UPDATE users SET last_login = ?, logins = logins + 1 WHERE user_id = ?';
                 db.query(updateQuery, [date, user.user_id], (updateErr) => {

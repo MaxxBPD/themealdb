@@ -12,6 +12,7 @@ function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [username, setUsername] = useState('');
+  const [noResults, setNoResults] = useState(false); // New state variable
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,7 +32,8 @@ function HomePage() {
   }, [location.state]);
 
   const handleSearch = () => {
-    setFirstRun(false); // Update state to indicate a search has been attempted
+    setFirstRun(false);
+    setNoResults(false); // Reset noResults before starting a new search
     console.log('Search button clicked');
     let url = `${baseUrl}`;
     if (searchTerm && !ingredient) {
@@ -55,13 +57,14 @@ function HomePage() {
             });
           });
           setResults(filteredMeals || []);
+          setNoResults(true); // Set noResults based on filteredMeals
         } else {
           setResults(data.meals || []);
+          setNoResults(true); // Set noResults based on data.meals
         }
-        setCurrentPage(1); // Reset to first page on new search
+        setCurrentPage(1);
       })
       .catch(error => console.error('Error fetching data:', error));
-
   }
 
   const handleFavoriteToggle = (idMeal, strMeal) => {
@@ -184,17 +187,19 @@ function HomePage() {
           </div>
           <div>
             <div>
-              {favorites.length > 0 && <h3>Your Favorite Meals</h3>}
-              <ul>
+              {Object.keys(favorites).length > 0 && <h3>Your Favorite Meals</h3>}
+              <ul style={{ listStyleType: 'none', padding: '0' }}>
                 {Object.entries(favorites).map(([idMeal, strMeal]) => (
-                  <li key={idMeal}>
-                    {strMeal}
-                    <button className="favorite-button" onClick={() => handleFavoriteToggle(idMeal, strMeal)}>
-                      {favorites[idMeal] ? 'Unmark Favorite' : 'Mark Favorite'}
-                    </button>
-                    <button className="view-recipe-button" onClick={() => handleViewRecipe(idMeal)}>
-                      View Recipe
-                    </button>
+                  <li key={idMeal} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{strMeal}</span>
+                    <div>
+                      <button className="favorite-button" onClick={() => handleFavoriteToggle(idMeal, strMeal)}>
+                        {favorites[idMeal] ? 'Unmark Favorite' : 'Mark Favorite'}
+                      </button>
+                      <button className="view-recipe-button" onClick={() => handleViewRecipe(idMeal)}>
+                        View Recipe
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -216,6 +221,7 @@ function HomePage() {
             <button 
               onClick={handleSearch}
               style={{ margin: '10px', padding: '5px' }}
+              disabled={!searchTerm && !ingredient}
             >
               Search
             </button>
@@ -234,7 +240,7 @@ function HomePage() {
                     </li>
                   ))}
                 </ul>
-              ) : ( !firstRun && results.length === 0 && (
+              ) : ( !firstRun && noResults && (
                 <p>No results found</p>
               ))}
               {results.length > resultsPerPage && (
